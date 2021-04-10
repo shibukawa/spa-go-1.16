@@ -49,12 +49,15 @@ func main() {
 		Handler: newHandler(),
 	}
 
+	finish := make(chan struct{})
 	go func() {
 		<-ctx.Done()
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		server.Shutdown(ctx)
+		close(finish)
 	}()
 	fmt.Fprintf(os.Stderr, "start receiving at :%d\n", env.Port)
 	fmt.Fprintln(os.Stderr, server.ListenAndServe())
+	<-finish
 }
